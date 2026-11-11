@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OriCover</title>
+  <style>
+    :root {
+      --fundo: #0f172a;
+      --cartao: #1e293b;
+      --borda: #64748b;
+      --texto: #f1f5f9;
+      --suave: #cbd5e1;
+      --destaque: #22d3ee;
+      --sobre-destaque: #082f49;
+      --erro: #fca5a5;
+      --mono: ui-monospace, Menlo, Consolas, "Roboto Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--fundo); color: var(--texto); font-family: system-ui, "Segoe UI", Roboto, sans-serif; font-size: 17px; line-height: 1.5; }
+    main { max-width: 560px; margin: 0 auto; padding: 16px 16px 40px; }
+    h1 { margin: 8px 0 0; font-size: 34px; color: var(--destaque); }
+    .subtitulo { margin: 0 0 24px; color: var(--suave); }
+    sub, sup { line-height: 0; }
+
+    fieldset { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+    legend, .titulo { display: block; margin-bottom: 8px; padding: 0; font-weight: 700; }
+
+    .opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .chip { position: relative; }
+    .chip input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .chip label { display: flex; flex-direction: column; justify-content: center; min-height: 58px; padding: 8px 14px; border: 2px solid var(--borda); border-radius: 12px; background: var(--cartao); }
+    .chip input:checked + label { border-color: var(--destaque); background: var(--sobre-destaque); }
+    .chip input:focus-visible + label { outline: 3px solid var(--texto); outline-offset: 2px; }
+    .base { color: var(--suave); font-size: 14px; }
+
+    .campo { margin-bottom: 20px; }
+    #numero { width: 100%; min-height: 58px; padding: 10px 14px; border: 2px solid var(--borda); border-radius: 12px; background: var(--cartao); color: var(--texto); font-family: var(--mono); font-size: 24px; letter-spacing: 1px; }
+    #numero:focus { outline: 3px solid var(--destaque); outline-offset: 2px; }
+    .dica { margin: 6px 0 0; color: var(--suave); font-size: 15px; }
+
+    .acoes { display: flex; gap: 8px; }
+    button { min-height: 54px; border-radius: 12px; font-family: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+    button:focus-visible { outline: 3px solid var(--texto); outline-offset: 2px; }
+    .principal { flex: 1; border: 0; background: var(--destaque); color: var(--sobre-destaque); }
+    .secundario { padding: 0 18px; border: 2px solid var(--borda); background: transparent; color: var(--texto); }
+
+    #resultado { margin-top: 24px; }
+    .cartao { margin-bottom: 14px; padding: 16px; border: 1px solid var(--borda); border-radius: 14px; background: var(--cartao); }
+    .erro { border-color: var(--erro); color: var(--erro); }
+    .rotulo { margin: 0; color: var(--suave); font-size: 15px; }
+    .grande { margin: 4px 0 8px; color: var(--destaque); font-family: var(--mono); font-size: 36px; font-weight: 700; overflow-wrap: anywhere; }
+    .grande sub { font-size: 20px; }
+    .passo h3 { margin: 0 0 8px; font-size: 18px; }
+    .linha { margin: 4px 0; font-family: var(--mono); font-size: 16px; overflow-wrap: anywhere; }
+
+    .pesos { display: flex; gap: 3px; margin-top: 8px; padding-bottom: 6px; overflow-x: auto; }
+    .pesos div { flex: 0 0 auto; min-width: 34px; padding: 4px; border: 1px solid var(--borda); border-radius: 8px; text-align: center; font-family: var(--mono); font-size: 18px; }
+    .pesos small { display: block; color: var(--suave); font-size: 14px; }
+    .pesos .um { border-color: var(--destaque); background: var(--destaque); color: var(--sobre-destaque); font-weight: 700; }
+    .pesos .um small { color: var(--sobre-destaque); }
+
+    @media (min-width: 560px) {
+      .opcoes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>OriCover</h1>
+  <p class="subtitulo">Conversor de sistemas numéricos, com os passos.</p>
+
+  <form id="formulario" autocomplete="off">
+
+    <fieldset>
+      <legend>1. O teu número está em:</legend>
+      <div class="opcoes">
+        <div class="chip"><input type="radio" name="de" id="de2" value="2" checked><label for="de2"><span>Binário</span><span class="base">base 2</span></label></div>
+        <div class="chip"><input type="radio" name="de" id="de8" value="8"><label for="de8"><span>Octal</span><span class="base">base 8</span></label></div>
+        <div class="chip"><input type="radio" name="de" id="de10" value="10"><label for="de10"><span>Decimal</span><span class="base">base 10</span></label></div>
+        <div class="chip"><input type="radio" name="de" id="de16" value="16"><label for="de16"><span>Hexadecimal</span><span class="base">base 16</span></label></div>
+      </div>
+    </fieldset>
+
+    <div class="campo">
+      <label for="numero" class="titulo">2. Escreve o número:</label>
+      <input type="text" id="numero" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-describedby="dica">
+      <p id="dica" class="dica"></p>
+    </div>
+
+    <fieldset>
+      <legend>3. Converter para:</legend>
+      <div class="opcoes">
+        <div class="chip"><input type="radio" name="para" id="para2" value="2"><label for="para2"><span>Binário</span><span class="base">base 2</span></label></div>
+        <div class="chip"><input type="radio" name="para" id="para8" value="8"><label for="para8"><span>Octal</span><span class="base">base 8</span></label></div>
+        <div class="chip"><input type="radio" name="para" id="para10" value="10"><label for="para10"><span>Decimal</span><span class="base">base 10</span></label></div>
+        <div class="chip"><input type="radio" name="para" id="para16" value="16" checked><label for="para16"><span>Hexadecimal</span><span class="base">base 16</span></label></div>
+      </div>
+    </fieldset>
+
+    <div class="acoes">
+      <button type="submit" class="principal">Converter</button>
+      <button type="button" id="trocar" class="secundario" aria-label="Trocar as bases">⇅ Trocar</button>
+    </div>
+    <p class="dica">Só números inteiros positivos, sem vírgula nem sinal.</p>
+  </form>
+
+  <section id="resultado" aria-live="polite"></section>
+</main>
+
+<script>
+  // ---------- DADOS: o que cada base aceita ----------
+  var NOMES = { 2: "Binário", 8: "Octal", 10: "Decimal", 16: "Hexadecimal" };
+  var REGRAS = {
+    2:  { digitos: "01",               max: 32, dica: "só aceita 0 e 1",          exemplo: "10100110" },
+    8:  { digitos: "01234567",         max: 12, dica: "só aceita de 0 a 7",       exemplo: "246" },
+    10: { digitos: "0123456789",       max: 10, dica: "só aceita de 0 a 9",       exemplo: "166" },
+    16: { digitos: "0123456789ABCDEF", max: 8,  dica: "só aceita 0 a 9 e A a F",  exemplo: "A6" }
+  };
+
+  var formulario = document.getElementById("formulario");
+  var campo = document.getElementById("numero");
+  var area = document.getElementById("resultado");
+  var ultimoResultado = "";
+
+  // ---------- FUNÇÕES PEQUENAS DE APOIO ----------
+  function lerBase(grupo) {
+    return Number(document.querySelector('input[name="' + grupo + '"]:checked').value);
+  }
+  function marcarBase(grupo, base) {
+    document.querySelector('input[name="' + grupo + '"][value="' + base + '"]').checked = true;
+  }
+  function sub(base) { return "<sub>" + base + "</sub>"; }
+  function pot(base, exp) { return base + "<sup>" + exp + "</sup>"; }
+  function letra(v) { return v.toString(16).toUpperCase(); }
+  function semZerosEsquerda(t) { return t.replace(/^0+(?=.)/, ""); }
+  function criar(tag, classe, html) {
+    var el = document.createElement(tag);
+    if (classe) { el.className = classe; }
+    if (html !== undefined) { el.innerHTML = html; }
+    return el;
+  }
+
+  // ---------- VALIDAÇÃO ----------
+  function validar(texto, base) {
+    if (texto === "") { return "Escreve um número primeiro."; }
+    var regra = REGRAS[base];
+    for (var i = 0; i < texto.length; i++) {
+      if (regra.digitos.indexOf(texto.charAt(i)) === -1) {
+        return 'O carácter "' + texto.charAt(i) + '" não existe em ' +
+               NOMES[base].toLowerCase() + " (" + regra.dica + ").";
+      }
+    }
+    if (texto.length > regra.max) {
+      return NOMES[base] + " aceita no máximo " + regra.max + " dígitos.";
+    }
+    return "";
+  }
+
+  // ---------- OS MÉTODOS DE CONVERSÃO (cada um devolve título, linhas e saída) ----------
+
+  // Qualquer base -> decimal: soma de (algarismo x base^posição)
+  function passoParaDecimal(texto, base) {
+    var termos = [], valores = [], letras = [], soma = 0;
+    for (var i = 0; i < texto.length; i++) {
+      var ch = texto.charAt(i);
+      var v = parseInt(ch, 16);
+      var exp = texto.length - 1 - i;
+      var valor = v * Math.pow(base, exp);
+      termos.push("(" + v + "×" + pot(base, exp) + ")");
+      valores.push(valor);
+      soma += valor;
+      if (v > 9 && letras.indexOf(ch + " = " + v) === -1) { letras.push(ch + " = " + v); }
+    }
+    var linhas = [
+      texto + sub(base) + " = " + termos.join(" + "),
+      "= " + valores.join(" + "),
+      "= " + soma
+    ];
+    if (letras.length > 0) { linhas.push("Letras usadas: " + letras.join(", ")); }
+    return { titulo: NOMES[base] + " → Decimal", linhas: linhas, saida: String(soma) };
+  }
+
+  // Decimal -> qualquer base: divisões sucessivas, restos lidos de baixo para cima
+  function passoDeDecimal(n, base) {
+    var linhas = [], restos = [], q = n;
+    while (q > 0) {
+      var r = q % base;
+      var novo = Math.floor(q / base);
+      linhas.push(q + " ÷ " + base + " = " + novo + ", resto " + r + (r > 9 ? " (" + letra(r) + ")" : ""));
+      restos.push(letra(r));
+      q = novo;
+    }
+    var saida = restos.reverse().join("");
+    linhas.push("Lê os restos de baixo para cima: " + saida);
+    return { titulo: "Decimal → " + NOMES[base], linhas: linhas, saida: saida };
+  }
+
+  // Binário -> octal (grupos de 3) ou hexadecimal (grupos de 4)
+  function passoBinarioParaGrupos(bin, tam) {
+    var base = (tam === 3) ? 8 : 16;
+    var pesos = (tam === 3) ? [4, 2, 1] : [8, 4, 2, 1];
+    var zeros = (tam - bin.length % tam) % tam;
+    var texto = "0".repeat(zeros) + bin;
+    var grupos = [];
+    for (var i = 0; i < texto.length; i += tam) { grupos.push(texto.slice(i, i + tam)); }
+
+    var linhas = ["Grupos de " + tam + " bits, da direita para a esquerda: " + grupos.join(" ") +
+                  (zeros > 0 ? " (acrescentei " + zeros + " zero(s) à esquerda)" : "")];
+    var saida = "";
+    grupos.forEach(function (g) {
+      var partes = [];
+      for (var j = 0; j < tam; j++) { if (g.charAt(j) === "1") { partes.push(pesos[j]); } }
+      var v = parseInt(g, 2);
+      linhas.push(g + " = " + (partes.length > 0 ? partes.join(" + ") : "0") + " = " + v + (v > 9 ? " = " + letra(v) : ""));
+      saida += letra(v);
+    });
+    linhas.push("Juntando: " + saida);
+    return { titulo: "Binário → " + NOMES[base] + " (grupos de " + tam + ")", linhas: linhas, saida: saida };
+  }
+
+  // Octal (3 bits) ou hexadecimal (4 bits) -> binário: cada algarismo vira um bloco de bits
+  function passoParaBinarioPorDigito(texto, tam) {
+    var base = (tam === 3) ? 8 : 16;
+    var linhas = [], blocos = [];
+    for (var i = 0; i < texto.length; i++) {
+      var ch = texto.charAt(i);
+      var v = parseInt(ch, 16);
+      var bits = v.toString(2);
+      while (bits.length < tam) { bits = "0" + bits; }
+      linhas.push(ch + " = " + v + " → " + bits);
+      blocos.push(bits);
+    }
+    var junto = blocos.join("");
+    var saida = semZerosEsquerda(junto);
+    linhas.push("Juntando: " + blocos.join(" ") + " → " + saida +
+                (saida !== junto ? " (retirei os zeros à esquerda)" : ""));
+    return { titulo: NOMES[base] + " → Binário (" + tam + " bits por algarismo)", linhas: linhas, saida: saida };
+  }
+
+  // ---------- ESCOLHE O CAMINHO CERTO PARA O PAR DE BASES ----------
+  function converter(texto, de, para) {
+    var n = parseInt(texto, de);
+    if (n === 0) {
+      return { saida: "0", passos: [{ titulo: "Caso especial", linhas: ["O zero escreve-se 0 em todas as bases."] }] };
+    }
+    var passos = [];
+    if (para === 10) {
+      passos.push(passoParaDecimal(texto, de));
+    } else if (de === 10) {
+      passos.push(passoDeDecimal(n, para));
+    } else if (de === 2) {
+      passos.push(passoBinarioParaGrupos(texto, para === 8 ? 3 : 4));
+    } else if (para === 2) {
+      passos.push(passoParaBinarioPorDigito(texto, de === 8 ? 3 : 4));
+    } else {
+      // octal <-> hexadecimal: passa pelo binário
+      var p1 = passoParaBinarioPorDigito(texto, de === 8 ? 3 : 4);
+      passos.push(p1);
+      passos.push(passoBinarioParaGrupos(p1.saida, para === 8 ? 3 : 4));
+    }
+    return { saida: passos[passos.length - 1].saida, passos: passos };
+  }
+
+  // ---------- MOSTRAR NO ECRÃ ----------
+  function limparResultado() { area.innerHTML = ""; }
+
+  function mostrarErro(mensagem) {
+    limparResultado();
+    var cartao = criar("div", "cartao erro", "<strong>Atenção:</strong> <span></span>");
+    cartao.querySelector("span").textContent = mensagem;   // textContent: nunca interpreta HTML
+    area.appendChild(cartao);
+  }
+
+  function faixaPesos(bits, titulo) {
+    var cartao = criar("div", "cartao");
+    cartao.appendChild(criar("p", "rotulo", titulo + " (cada 1 soma o seu peso)"));
+    var faixa = criar("div", "pesos");
+    for (var i = 0; i < bits.length; i++) {
+      var peso = Math.pow(2, bits.length - 1 - i);
+      faixa.appendChild(criar("div", bits.charAt(i) === "1" ? "um" : "", bits.charAt(i) + "<small>" + peso + "</small>"));
+    }
+    cartao.appendChild(faixa);
+    return cartao;
+  }
+
+  function mostrarResultado(texto, de, para, r) {
+    limparResultado();
+
+    var cartao = criar("div", "cartao");
+    cartao.appendChild(criar("p", "rotulo", "Resultado em " + NOMES[para]));
+    cartao.appendChild(criar("p", "grande", r.saida + sub(para)));
+    var igualdade = texto + sub(de) + " = " + r.saida + sub(para);
+    if (de !== 10 && para !== 10) {
+      igualdade += " (em decimal, os dois valem " + parseInt(texto, de) + ")";
+    }
+    cartao.appendChild(criar("p", "linha", igualdade));
+    area.appendChild(cartao);
+
+    if (de === 2) {
+      area.appendChild(faixaPesos(texto, "Pesos do teu número binário"));
+    } else if (para === 2) {
+      area.appendChild(faixaPesos(r.saida, "Pesos do resultado binário"));
+    }
+
+    r.passos.forEach(function (p, i) {
+      var passo = criar("article", "cartao passo");
+      passo.appendChild(criar("h3", "", "Passo " + (i + 1) + " · " + p.titulo));
+      p.linhas.forEach(function (linha) { passo.appendChild(criar("p", "linha", linha)); });
+      area.appendChild(passo);
+    });
+  }
+
+  // ---------- AÇÕES DO UTILIZADOR ----------
+  function atualizarCampo() {
+    var de = lerBase("de");
+    campo.placeholder = "Ex.: " + REGRAS[de].exemplo;
+    campo.setAttribute("inputmode", de === 16 ? "text" : "numeric");
+    document.getElementById("dica").textContent =
+      NOMES[de] + ": " + REGRAS[de].dica + " (máx. " + REGRAS[de].max + " dígitos).";
+  }
+
+  function converterAgora() {
+    var de = lerBase("de");
+    var para = lerBase("para");
+    var texto = semZerosEsquerda(campo.value.replace(/\s+/g, "").toUpperCase());
+
+    var erro = validar(texto, de);
+    if (erro === "" && de === para) {
+      erro = 'Escolheste a mesma base nos dois lados. Em "Converter para", escolhe uma base diferente.';
+    }
+    if (erro !== "") {
+      ultimoResultado = "";
+      mostrarErro(erro);
+      return;
+    }
+    var r = converter(texto, de, para);
+    ultimoResultado = r.saida;
+    mostrarResultado(texto, de, para, r);
+  }
+
+  formulario.addEventListener("submit", function (evento) {
+    evento.preventDefault();
+    converterAgora();
+  });
+
+  document.querySelectorAll('input[name="de"], input[name="para"]').forEach(function (radio) {
+    radio.addEventListener("change", function () {
+      ultimoResultado = "";
+      atualizarCampo();
+      limparResultado();
+    });
+  });
+
+  campo.addEventListener("input", function () {
+    ultimoResultado = "";
+    limparResultado();
+  });
+
+  document.getElementById("trocar").addEventListener("click", function () {
+    var de = lerBase("de");
+    var para = lerBase("para");
+    marcarBase("de", para);
+    marcarBase("para", de);
+    if (ultimoResultado !== "") { campo.value = ultimoResultado; }
+    atualizarCampo();
+    if (campo.value.trim() !== "") { converterAgora(); } else { limparResultado(); }
+  });
+
+  atualizarCampo();
+</script>
+</body>
+  </html>
